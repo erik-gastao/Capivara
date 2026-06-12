@@ -23,8 +23,8 @@ para o dia da demonstração.
 **Passos:**
 
 ```bash
-git clone https://github.com/SEU-USUARIO/capivara-companheira.git
-cd capivara-companheira
+git clone https://github.com/erik-gastao/Capivara.git
+cd Capivara
 npm install
 npx expo start --tunnel
 ```
