@@ -11,19 +11,24 @@ sempre simplicidade e clareza.
 
 ## Stack
 
-- React Native `0.74.5` com Expo SDK `~51` (gerenciado, sem código nativo custom)
+- React Native `0.81.5` com Expo SDK `~54` (gerenciado, sem código nativo custom)
 - TypeScript em modo `strict`
-- Navegação: React Navigation (native-stack)
+- Navegação: React Navigation v7 (native-stack)
 - Persistência local: `@react-native-async-storage/async-storage`
 - Sem backend: todo o estado vive no dispositivo
 - Só orientação retrato (portrait)
 
+> O Expo Go do dispositivo alvo suporta SDK 54. Não atualizar o SDK sem
+> confirmar antes qual versão o Expo Go do celular de testes suporta.
+
 ## Comandos
 
 - Instalar: `npm install`
-- Rodar: `npx expo start` (no Windows, se o PowerShell bloquear: `npx.cmd expo start`)
+- Rodar no celular: `npx expo start --tunnel` (use sempre `--tunnel` — funciona em qualquer rede)
 - Rodar no navegador: `npx expo start --web`
 - Verificar tipos: `npx tsc --noEmit`
+
+No Windows com PowerShell, substituir `npx` por `npx.cmd` se o comando travar.
 
 Sempre rode `npx tsc --noEmit` após mudanças e garanta que passa sem erros antes
 de considerar uma tarefa concluída.
@@ -45,14 +50,28 @@ não dentro de telas. Acesso a armazenamento vai em `storage`, não espalhado.
 - A Capy tem 4 status numéricos: `hunger`, `happiness`, `energy`, `hygiene`.
   Convencionalmente na faixa de 0 a 100 — sempre faça "clamp" para manter os
   valores dentro desses limites.
+- `coins` também faz parte de `CapybaraStatus` — moeda do jogo, sem faixa
+  máxima, nunca negativa. Use `addCoinsBonus` em `statusRules` para alterá-la.
 - O humor (`CapybaraMood`: feliz/normal/triste) é **derivado** dos status, não
   armazenado separadamente.
 - 4 ações de cuidado (`CareAction`): `feed`, `bath`, `play`, `sleep`.
 - As ações têm trade-offs (definidos em `src/utils/statusRules`): por exemplo,
   comer reduz higiene e brincar reduz energia. Esse equilíbrio é o núcleo da
   jogabilidade — preserve-o ao mexer nas regras.
-- Telas: Home, Game, MiniGames, MemoryGame, Shop, Profile, e 4 cômodos
-  (Kitchen, Bathroom, Garden, Bedroom) que reutilizam o mesmo `RoomScreen`.
+- Telas: Home, Game, MiniGames, MemoryGame, CatchFoodGame, Shop, Profile, e
+  4 cômodos (Kitchen, Bathroom, Garden, Bedroom) que reutilizam o mesmo
+  `RoomScreen`.
+
+### Navegação do GameScreen
+
+O `GameScreen` não tem mais barra de navegação inferior. O acesso às funções
+é feito pelo topo da tela:
+
+- **Linha superior:** moedas (esquerda) + botão de perfil (direita)
+- **Linha de ações:** Alimentar · Brincar · Dormir · Banho (esquerda → direita)
+
+Não reintroduza `GameBottomNav` no `GameScreen` sem discutir antes — a
+remoção foi intencional para simplificar a interface para o público idoso.
 
 ## Acessibilidade (requisito central, não opcional)
 
