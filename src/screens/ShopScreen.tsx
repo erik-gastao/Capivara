@@ -1,9 +1,13 @@
+import { useCallback, useState } from "react";
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { GameBottomNav } from "../components/GameBottomNav";
-import { RootStackParamList } from "../types/game";
+import { loadGameStatus } from "../storage/gameStorage";
+import { CapybaraStatus, RootStackParamList } from "../types/game";
+import { initialStatus } from "../utils/statusRules";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Shop">;
 
@@ -27,6 +31,14 @@ const shopItems: Array<{
 ];
 
 export function ShopScreen({ navigation }: Props) {
+  const [status, setStatus] = useState<CapybaraStatus>(initialStatus);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadGameStatus().then(setStatus);
+    }, [])
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.phoneFrame}>
@@ -49,7 +61,7 @@ export function ShopScreen({ navigation }: Props) {
 
             <View style={styles.coinPill}>
               <MaterialCommunityIcons color="#F5A623" name="gold" size={19} />
-              <Text style={styles.coinText}>1250</Text>
+              <Text style={styles.coinText}>{status.coins}</Text>
               <View style={styles.plusCircle}>
                 <MaterialCommunityIcons color="#FFFFFF" name="plus" size={18} />
               </View>

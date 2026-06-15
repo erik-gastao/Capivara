@@ -2,6 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 
+import { CatchFoodGameScreen } from "./src/screens/CatchFoodGameScreen";
 import { GameScreen } from "./src/screens/GameScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import { MemoryGameScreen } from "./src/screens/MemoryGameScreen";
@@ -27,6 +28,7 @@ export default function App() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Game" component={GameScreen} />
         <Stack.Screen name="MiniGames" component={MiniGamesScreen} />
+        <Stack.Screen name="CatchFoodGame" component={CatchFoodGameScreen} />
         <Stack.Screen name="MemoryGame" component={MemoryGameScreen} />
         <Stack.Screen name="Shop" component={ShopScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />

@@ -1,6 +1,7 @@
 import { CapybaraMood, CapybaraStatus, CareAction } from "../types/game";
 
 export const initialStatus: CapybaraStatus = {
+  coins: 1250,
   hunger: 70,
   happiness: 70,
   energy: 70,
@@ -33,10 +34,21 @@ export function applyCareAction(
   const changes = actionChanges[action];
 
   return {
+    coins: status.coins,
     hunger: keepInRange(status.hunger + (changes.hunger ?? 0)),
     happiness: keepInRange(status.happiness + (changes.happiness ?? 0)),
     energy: keepInRange(status.energy + (changes.energy ?? 0)),
     hygiene: keepInRange(status.hygiene + (changes.hygiene ?? 0))
+  };
+}
+
+export function addCoinsBonus(
+  status: CapybaraStatus,
+  coins: number
+): CapybaraStatus {
+  return {
+    ...status,
+    coins: Math.max(0, status.coins + coins)
   };
 }
 
@@ -53,7 +65,7 @@ export function addHappinessBonus(
 
 // Define o humor da capivara a partir dos status principais.
 export function getCapybaraMood(status: CapybaraStatus): CapybaraMood {
-  const values = Object.values(status);
+  const values = [status.hunger, status.happiness, status.energy, status.hygiene];
 
   if (values.some((value) => value < 30)) {
     return "triste";

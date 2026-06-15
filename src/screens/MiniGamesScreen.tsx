@@ -15,14 +15,16 @@ const games: Array<{
   iconColor: string;
   enabled: boolean;
   color: string;
+  route: keyof RootStackParamList;
 }> = [
   {
     title: "Pegue a comida",
-    subtitle: "Em breve",
+    subtitle: "Pinhas da araucária",
     iconName: "food-apple",
     iconColor: "#F06445",
-    enabled: false,
-    color: "#BDEBFF"
+    enabled: true,
+    color: "#BDEBFF",
+    route: "CatchFoodGame"
   },
   {
     title: "Memória",
@@ -30,7 +32,8 @@ const games: Array<{
     iconName: "cards",
     iconColor: "#7D66D6",
     enabled: true,
-    color: "#D8C8FF"
+    color: "#D8C8FF",
+    route: "MemoryGame"
   },
   {
     title: "Arremesso",
@@ -38,7 +41,8 @@ const games: Array<{
     iconName: "basket",
     iconColor: "#B36B24",
     enabled: false,
-    color: "#BFF2D4"
+    color: "#BFF2D4",
+    route: "MiniGames"
   }
 ];
 
@@ -69,7 +73,7 @@ export function MiniGamesScreen({ navigation }: Props) {
                 accessibilityRole="button"
                 disabled={!game.enabled}
                 key={game.title}
-                onPress={() => navigation.navigate("MemoryGame")}
+                onPress={() => game.enabled && navigation.navigate(game.route as never)}
                 style={({ pressed }) => [
                   styles.gameCard,
                   { backgroundColor: game.color },

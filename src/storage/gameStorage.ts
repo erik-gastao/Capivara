@@ -14,7 +14,10 @@ export async function loadGameStatus(): Promise<CapybaraStatus> {
   }
 
   try {
-    return JSON.parse(storedStatus) as CapybaraStatus;
+    return {
+      ...initialStatus,
+      ...(JSON.parse(storedStatus) as Partial<CapybaraStatus>)
+    };
   } catch {
     return initialStatus;
   }

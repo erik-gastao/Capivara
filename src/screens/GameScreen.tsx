@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ImageBackground,
   Pressable,
@@ -11,11 +11,11 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { GameBottomNav } from "../components/GameBottomNav";
 import { StatusBar } from "../components/StatusBar";
 import { loadGameStatus, saveGameStatus } from "../storage/gameStorage";
 import { CapybaraStatus, RootStackParamList, RoomName } from "../types/game";
 import {
+  addCoinsBonus,
   addHappinessBonus,
   getCapybaraMood,
   initialStatus
@@ -79,25 +79,36 @@ export function GameScreen({ navigation, route }: Props) {
   const [status, setStatus] = useState<CapybaraStatus>(initialStatus);
   const [message, setMessage] = useState("Olá! Vamos cuidar da sua capivara?");
 
-  useEffect(() => {
-    loadGameStatus().then(setStatus);
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
-      const bonus = route.params?.happinessBonus;
+      let isActive = true;
 
-      if (!bonus) {
-        return;
+      async function syncStatus() {
+        const storedStatus = await loadGameStatus();
+        const bonus = route.params?.happinessBonus;
+
+        if (!isActive) {
+          return;
+        }
+
+        if (!bonus) {
+          setStatus(storedStatus);
+          return;
+        }
+
+        const updatedStatus = addHappinessBonus(storedStatus, bonus);
+        const finalStatus = addCoinsBonus(updatedStatus, 0);
+        setStatus(finalStatus);
+        setMessage("Muito bem! A capivara ficou mais feliz.");
+        await saveGameStatus(finalStatus);
+        navigation.setParams({ happinessBonus: undefined });
       }
 
-      setStatus((currentStatus) => {
-        const updatedStatus = addHappinessBonus(currentStatus, bonus);
-        saveGameStatus(updatedStatus);
-        return updatedStatus;
-      });
-      setMessage("Muito bem! A capivara ficou mais feliz.");
-      navigation.setParams({ happinessBonus: undefined });
+      syncStatus();
+
+      return () => {
+        isActive = false;
+      };
     }, [navigation, route.params?.happinessBonus])
   );
 
@@ -107,6 +118,52 @@ export function GameScreen({ navigation, route }: Props) {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.phoneFrame}>
         <View style={styles.phone}>
+
+          {/* Barra superior: moedas à esquerda, perfil à direita */}
+          <View style={styles.topBar}>
+            <View style={styles.coinPill}>
+              <MaterialCommunityIcons color="#F5A623" name="gold" size={21} />
+              <Text style={styles.coinText}>{status.coins}</Text>
+              <View style={styles.plusCircle}>
+                <MaterialCommunityIcons color="#FFFFFF" name="plus" size={20} />
+              </View>
+            </View>
+
+            <Pressable
+              accessibilityLabel="Ver perfil"
+              accessibilityRole="button"
+              onPress={() => navigation.navigate("Profile")}
+              style={({ pressed }) => [styles.profileButton, pressed && styles.pressed]}
+            >
+              <MaterialCommunityIcons color="#FFE8C7" name="account-circle" size={30} />
+            </Pressable>
+          </View>
+
+          {/* Ações de cuidado: fila horizontal esquerda → direita */}
+          <View style={styles.actionsRow}>
+            {actionTiles.map((tile) => (
+              <Pressable
+                accessibilityRole="button"
+                key={tile.label}
+                onPress={() => navigation.navigate(tile.room)}
+                style={({ pressed }) => [
+                  styles.actionTile,
+                  { backgroundColor: tile.color, borderColor: tile.borderColor },
+                  pressed && styles.pressed
+                ]}
+              >
+                <View style={styles.actionGloss} />
+                <MaterialCommunityIcons
+                  color={tile.iconColor}
+                  name={tile.iconName}
+                  size={35}
+                />
+                <Text style={styles.actionLabel}>{tile.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {/* Cena principal com a capivara */}
           <View style={styles.lobbyFrame}>
             <ImageBackground
               accessibilityLabel="Lobby da capivara em uma sala aconchegante"
@@ -115,24 +172,6 @@ export function GameScreen({ navigation, route }: Props) {
               source={lobbyImage}
               style={styles.lobbyImage}
             >
-              <View style={styles.notch} />
-
-              <View style={styles.topHud}>
-                <View style={styles.coinPill}>
-                  <MaterialCommunityIcons color="#F5A623" name="gold" size={21} />
-                  <Text style={styles.coinText}>1250</Text>
-                  <View style={styles.plusCircle}>
-                    <MaterialCommunityIcons color="#FFFFFF" name="plus" size={20} />
-                  </View>
-                </View>
-
-                <Text style={styles.title}>Casa da{"\n"}Capivara</Text>
-
-                <View style={styles.heartButton}>
-                  <MaterialCommunityIcons color="#FFE8C7" name="heart" size={28} />
-                </View>
-              </View>
-
               <View style={styles.moodPill}>
                 <Text style={styles.moodText}>Humor: {moodLabel[mood]}</Text>
               </View>
@@ -143,29 +182,6 @@ export function GameScreen({ navigation, route }: Props) {
                 <StatusBar iconColor="#F28F2E" iconName="flash" label="Energia" value={status.energy} color="#F2A13A" />
                 <StatusBar iconColor="#45BADA" iconName="water" label="Higiene" value={status.hygiene} color="#45BADA" />
               </View>
-
-              <View style={styles.actionsRow}>
-                {actionTiles.map((tile) => (
-                  <Pressable
-                    accessibilityRole="button"
-                    key={tile.label}
-                    onPress={() => navigation.navigate(tile.room)}
-                    style={({ pressed }) => [
-                      styles.actionTile,
-                      { backgroundColor: tile.color, borderColor: tile.borderColor },
-                      pressed && styles.pressed
-                    ]}
-                  >
-                    <View style={styles.actionGloss} />
-                    <MaterialCommunityIcons
-                      color={tile.iconColor}
-                      name={tile.iconName}
-                      size={35}
-                    />
-                    <Text style={styles.actionLabel}>{tile.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
             </ImageBackground>
           </View>
 
@@ -173,13 +189,6 @@ export function GameScreen({ navigation, route }: Props) {
             <Text style={styles.message}>{message}</Text>
           </View>
 
-          <GameBottomNav
-            active="home"
-            onGames={() => navigation.navigate("MiniGames")}
-            onHome={() => navigation.navigate("Game")}
-            onProfile={() => navigation.navigate("Profile")}
-            onShop={() => navigation.navigate("Shop")}
-          />
         </View>
       </View>
     </SafeAreaView>
@@ -208,53 +217,18 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 8
   },
-  lobbyFrame: {
-    flex: 1,
-    minHeight: 560,
-    overflow: "hidden",
-    borderRadius: 24,
-    borderWidth: 3,
-    borderColor: "#A96325",
-    backgroundColor: "#F1CF8C",
-    shadowColor: "#6D4322",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.22,
-    shadowRadius: 14,
-    elevation: 7
-  },
-  lobbyImage: {
-    flex: 1,
-    backgroundColor: "#F1CF8C"
-  },
-  lobbyBackdrop: {
-    transform: [{ scale: 1 }]
-  },
-  notch: {
-    position: "absolute",
-    top: 0,
-    left: "36%",
-    right: "36%",
-    height: 22,
-    borderBottomLeftRadius: 13,
-    borderBottomRightRadius: 13,
-    backgroundColor: "#161616"
-  },
-  topHud: {
-    position: "absolute",
-    left: 10,
-    right: 10,
-    top: 18,
-    minHeight: 54,
-    alignItems: "center",
+  topBar: {
     flexDirection: "row",
-    justifyContent: "space-between"
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8
   },
   coinPill: {
-    height: 38,
-    minWidth: 104,
+    height: 42,
+    minWidth: 110,
     alignItems: "center",
     flexDirection: "row",
-    borderRadius: 20,
+    borderRadius: 22,
     backgroundColor: "#FFF5D9",
     borderWidth: 2,
     borderColor: "#A96325",
@@ -263,87 +237,38 @@ const styles = StyleSheet.create({
   },
   coinText: {
     color: "#4E2D17",
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "900",
     marginLeft: 4,
     marginRight: 5
   },
   plusCircle: {
-    width: 28,
-    height: 28,
+    width: 30,
+    height: 30,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 14,
+    borderRadius: 15,
     backgroundColor: "#67AF31"
   },
-  title: {
-    flex: 1,
-    color: "#6A3B1E",
-    fontSize: 22,
-    fontWeight: "900",
-    lineHeight: 25,
-    marginHorizontal: 7,
-    textAlign: "center",
-    textShadowColor: "#FFE3A9",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 1
-  },
-  heartButton: {
-    width: 46,
-    height: 46,
+  profileButton: {
+    width: 48,
+    height: 48,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 23,
-    backgroundColor: "#B95632",
+    borderRadius: 24,
+    backgroundColor: "#8A5428",
     borderWidth: 3,
-    borderColor: "#713319",
+    borderColor: "#5E351C",
     shadowColor: "#5D2D18",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5
   },
-  moodPill: {
-    position: "absolute",
-    right: 12,
-    top: 84,
-    maxWidth: 210,
-    borderRadius: 16,
-    backgroundColor: "rgba(255, 247, 226, 0.96)",
-    borderWidth: 2,
-    borderColor: "#B87534",
-    paddingHorizontal: 12,
-    paddingVertical: 6
-  },
-  moodText: {
-    color: "#5D351C",
-    fontSize: 14,
-    fontWeight: "900",
-    textAlign: "center"
-  },
-  statusPanel: {
-    position: "absolute",
-    right: 12,
-    top: 126,
-    width: 168,
-    borderRadius: 18,
-    backgroundColor: "rgba(255, 247, 226, 0.95)",
-    borderWidth: 2,
-    borderColor: "#B87534",
-    padding: 10,
-    shadowColor: "#6D4322",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 6
-  },
   actionsRow: {
-    position: "absolute",
-    left: 10,
-    right: 10,
-    bottom: 12,
     flexDirection: "row",
-    gap: 8
+    gap: 8,
+    marginBottom: 8
   },
   actionTile: {
     flex: 1,
@@ -381,6 +306,60 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(77, 45, 23, 0.42)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1
+  },
+  lobbyFrame: {
+    flex: 1,
+    overflow: "hidden",
+    borderRadius: 24,
+    borderWidth: 3,
+    borderColor: "#A96325",
+    backgroundColor: "#F1CF8C",
+    shadowColor: "#6D4322",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    elevation: 7
+  },
+  lobbyImage: {
+    flex: 1,
+    backgroundColor: "#F1CF8C"
+  },
+  lobbyBackdrop: {
+    transform: [{ scale: 1 }]
+  },
+  moodPill: {
+    position: "absolute",
+    right: 12,
+    top: 12,
+    maxWidth: 210,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 247, 226, 0.96)",
+    borderWidth: 2,
+    borderColor: "#B87534",
+    paddingHorizontal: 12,
+    paddingVertical: 6
+  },
+  moodText: {
+    color: "#5D351C",
+    fontSize: 14,
+    fontWeight: "900",
+    textAlign: "center"
+  },
+  statusPanel: {
+    position: "absolute",
+    right: 12,
+    top: 54,
+    width: 168,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 247, 226, 0.95)",
+    borderWidth: 2,
+    borderColor: "#B87534",
+    padding: 10,
+    shadowColor: "#6D4322",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 6
   },
   messageBoard: {
     minHeight: 42,

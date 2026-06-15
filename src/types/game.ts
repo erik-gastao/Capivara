@@ -1,4 +1,5 @@
 export type CapybaraStatus = {
+  coins: number;
   hunger: number;
   happiness: number;
   energy: number;
@@ -17,6 +18,7 @@ export type RootStackParamList = {
   Home: undefined;
   Game: { happinessBonus?: number } | undefined;
   MiniGames: undefined;
+  CatchFoodGame: undefined;
   MemoryGame: undefined;
   Shop: undefined;
   Profile: undefined;

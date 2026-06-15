@@ -1,0 +1,28 @@
+{
+  "name": "Capivara Companheira",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+
+  // Porta do Metro bundler / Expo. Permite abrir a versão web no navegador do host.
+  "forwardPorts": [8081],
+  "portsAttributes": {
+    "8081": { "label": "Expo / Metro bundler" }
+  },
+
+  // node_modules fica em um volume Linux nativo: muito mais rápido do que
+  // o bind mount do Windows para milhares de arquivos pequenos.
+  "mounts": [
+    "source=capivara-node-modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
+  ],
+
+  // O volume é criado pertencendo ao root; devolve a posse ao usuário "node"
+  // antes de instalar as dependências.
+  "postCreateCommand": "sudo chown node:node node_modules && npm install",
+
+  "remoteUser": "node",
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["expo.vscode-expo-tools"]
+    }
+  }
+}
