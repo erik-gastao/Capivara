@@ -11,8 +11,9 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
+import { PageNav, ROOM_PAGES } from "../components/PageNav";
 import { loadGameStatus, loadLastRoom, saveGameStatus } from "../storage/gameStorage";
-import { CapybaraStatus, RootStackParamList, RoomName } from "../types/game";
+import { CapybaraStatus, RootStackParamList } from "../types/game";
 import {
   addCoinsBonus,
   addHappinessBonus,
@@ -22,17 +23,9 @@ import {
 const lobbyImage = require("../../assets/images/capybara-lobby-cartoon.png");
 
 const BAR_TRACK_HEIGHT = 72;
+const PAGE_INDEX = 0;
 
 type Props = NativeStackScreenProps<RootStackParamList, "Game">;
-
-type ActionTileConfig = {
-  label: string;
-  iconName: keyof typeof MaterialCommunityIcons.glyphMap;
-  room: RoomName;
-  color: string;
-  borderColor: string;
-  iconColor: string;
-};
 
 type StatusBarConfig = {
   iconName: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -41,41 +34,6 @@ type StatusBarConfig = {
   value: number;
   fillColor: string;
 };
-
-const actionTiles: ActionTileConfig[] = [
-  {
-    label: "Alimentar",
-    iconName: "carrot",
-    room: "Kitchen",
-    color: "#8DCD3F",
-    borderColor: "#4E8622",
-    iconColor: "#F47B2D"
-  },
-  {
-    label: "Brincar",
-    iconName: "beach",
-    room: "Garden",
-    color: "#FFC25E",
-    borderColor: "#B36B24",
-    iconColor: "#3A8FCE"
-  },
-  {
-    label: "Dormir",
-    iconName: "moon-waning-crescent",
-    room: "Bedroom",
-    color: "#8169D8",
-    borderColor: "#503DA1",
-    iconColor: "#FFE67C"
-  },
-  {
-    label: "Banho",
-    iconName: "shower-head",
-    room: "Bathroom",
-    color: "#57C0D2",
-    borderColor: "#2C7D91",
-    iconColor: "#D6F7FF"
-  }
-];
 
 export function GameScreen({ navigation, route }: Props) {
   const [status, setStatus] = useState<CapybaraStatus>(initialStatus);
@@ -128,6 +86,8 @@ export function GameScreen({ navigation, route }: Props) {
     { iconName: "water",  iconColor: "#45BADA", label: "Higiene", value: status.hygiene,   fillColor: "#45BADA" },
   ];
 
+  const nextRoom = ROOM_PAGES[PAGE_INDEX + 1]?.room;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.phoneFrame}>
@@ -153,7 +113,7 @@ export function GameScreen({ navigation, route }: Props) {
             </Pressable>
           </View>
 
-          {/* Barras de status verticais: ícone → barra → label */}
+          {/* Barras de status verticais */}
           <View style={styles.statusBarsRow}>
             {statusBars.map((bar) => {
               const fillColor = bar.value < 30 ? "#E94B61" : bar.fillColor;
@@ -170,29 +130,11 @@ export function GameScreen({ navigation, route }: Props) {
             })}
           </View>
 
-          {/* Ações de cuidado: fila horizontal esquerda → direita */}
-          <View style={styles.actionsRow}>
-            {actionTiles.map((tile) => (
-              <Pressable
-                accessibilityRole="button"
-                key={tile.label}
-                onPress={() => navigation.navigate(tile.room)}
-                style={({ pressed }) => [
-                  styles.actionTile,
-                  { backgroundColor: tile.color, borderColor: tile.borderColor },
-                  pressed && styles.pressed
-                ]}
-              >
-                <View style={styles.actionGloss} />
-                <MaterialCommunityIcons
-                  color={tile.iconColor}
-                  name={tile.iconName}
-                  size={35}
-                />
-                <Text style={styles.actionLabel}>{tile.label}</Text>
-              </Pressable>
-            ))}
-          </View>
+          {/* Paginação de cômodos */}
+          <PageNav
+            currentPage={PAGE_INDEX}
+            onNext={nextRoom ? () => navigation.navigate(nextRoom) : undefined}
+          />
 
           {/* Cena principal com a capivara */}
           <View style={styles.lobbyFrame}>
@@ -283,6 +225,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5
   },
+  pressed: {
+    opacity: 0.75
+  },
   statusBarsRow: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -318,48 +263,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "900",
     textAlign: "center"
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 8
-  },
-  actionTile: {
-    flex: 1,
-    minHeight: 82,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 20,
-    borderWidth: 3,
-    paddingHorizontal: 4,
-    paddingVertical: 7,
-    shadowColor: "#5E351C",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 6
-  },
-  actionGloss: {
-    position: "absolute",
-    left: 8,
-    right: 8,
-    top: 7,
-    height: 18,
-    borderRadius: 999,
-    backgroundColor: "rgba(255, 255, 255, 0.22)"
-  },
-  pressed: {
-    opacity: 0.75
-  },
-  actionLabel: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "900",
-    marginTop: 2,
-    textAlign: "center",
-    textShadowColor: "rgba(77, 45, 23, 0.42)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1
   },
   lobbyFrame: {
     flex: 1,

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { ActionButton } from "../components/ActionButton";
 import { CapybaraDisplay } from "../components/CapybaraDisplay";
+import { PageNav, ROOM_PAGES } from "../components/PageNav";
 import { loadGameStatus, saveGameStatus, saveLastRoom } from "../storage/gameStorage";
 import {
   CapybaraScene,
@@ -29,15 +30,6 @@ type RoomConfig = {
   icon: string;
 };
 
-type TileConfig = {
-  label: string;
-  iconName: keyof typeof MaterialCommunityIcons.glyphMap;
-  room: RoomName;
-  color: string;
-  borderColor: string;
-  iconColor: string;
-};
-
 type BarItem = {
   iconName: keyof typeof MaterialCommunityIcons.glyphMap;
   label: string;
@@ -52,18 +44,11 @@ type RoomBottomBarConfig = {
 const COMPACT_BAR_HEIGHT = 44;
 
 const roomConfigs: Record<RoomName, RoomConfig> = {
-  Kitchen:  { scene: "kitchen",  action: "feed",  actionLabel: "Alimentar",  icon: "🥕"  },
-  Bathroom: { scene: "bathroom", action: "bath",  actionLabel: "Dar banho",  icon: "🫧"  },
-  Garden:   { scene: "garden",   action: "play",  actionLabel: "Brincar",    icon: "🏖️" },
-  Bedroom:  { scene: "bedroom",  action: "sleep", actionLabel: "Dormir",     icon: "🌙"  }
+  Kitchen:  { scene: "kitchen",  action: "feed",  actionLabel: "Alimentar", icon: "🥕"  },
+  Bathroom: { scene: "bathroom", action: "bath",  actionLabel: "Dar banho", icon: "🫧"  },
+  Garden:   { scene: "garden",   action: "play",  actionLabel: "Brincar",   icon: "🏖️" },
+  Bedroom:  { scene: "bedroom",  action: "sleep", actionLabel: "Dormir",    icon: "🌙"  }
 };
-
-const roomTiles: TileConfig[] = [
-  { label: "Alimentar", iconName: "carrot",             room: "Kitchen",  color: "#8DCD3F", borderColor: "#4E8622", iconColor: "#F47B2D" },
-  { label: "Brincar",   iconName: "beach",              room: "Garden",   color: "#FFC25E", borderColor: "#B36B24", iconColor: "#3A8FCE" },
-  { label: "Dormir",    iconName: "moon-waning-crescent",room: "Bedroom",  color: "#8169D8", borderColor: "#503DA1", iconColor: "#FFE67C" },
-  { label: "Banho",     iconName: "shower-head",        room: "Bathroom", color: "#57C0D2", borderColor: "#2C7D91", iconColor: "#D6F7FF" }
-];
 
 const roomBarConfigs: Record<RoomName, RoomBottomBarConfig> = {
   Kitchen:  {
@@ -95,10 +80,28 @@ export function RoomScreen({ navigation, route }: Props) {
   const barConfig = roomBarConfigs[route.name];
   const mood = getCapybaraMood(status);
 
+  const pageIndex = ROOM_PAGES.findIndex((p) => p.room === route.name);
+  const prevPage = ROOM_PAGES[pageIndex - 1];
+  const nextPage = ROOM_PAGES[pageIndex + 1];
+
   useEffect(() => {
     loadGameStatus().then(setStatus);
     saveLastRoom(route.name);
   }, [route.name]);
+
+  function handlePrev() {
+    if (!prevPage) return;
+    if (prevPage.room === null) {
+      navigation.goBack();
+    } else {
+      navigation.replace(prevPage.room);
+    }
+  }
+
+  function handleNext() {
+    if (!nextPage?.room) return;
+    navigation.replace(nextPage.room);
+  }
 
   function handleCareAction() {
     const updatedStatus = applyCareAction(status, config.action);
@@ -135,29 +138,12 @@ export function RoomScreen({ navigation, route }: Props) {
           })}
         </View>
 
-        {/* Navegação entre cômodos */}
-        <View style={styles.roomTilesRow}>
-          {roomTiles.map((tile) => {
-            const isActive = route.name === tile.room;
-            return (
-              <Pressable
-                accessibilityRole="button"
-                key={tile.label}
-                onPress={() => { if (!isActive) navigation.replace(tile.room); }}
-                style={({ pressed }) => [
-                  styles.roomTile,
-                  { backgroundColor: tile.color, borderColor: isActive ? "#FFFFFF" : tile.borderColor },
-                  isActive && styles.roomTileActive,
-                  !isActive && pressed && styles.pressed
-                ]}
-              >
-                <MaterialCommunityIcons color={tile.iconColor} name={tile.iconName} size={26} />
-                <Text style={styles.roomTileLabel}>{tile.label}</Text>
-                {isActive && <View style={styles.activeDot} />}
-              </Pressable>
-            );
-          })}
-        </View>
+        {/* Paginação de cômodos */}
+        <PageNav
+          currentPage={pageIndex}
+          onPrev={prevPage ? handlePrev : undefined}
+          onNext={nextPage ? handleNext : undefined}
+        />
 
         <CapybaraDisplay mood={mood} scene={config.scene} compact />
 
@@ -208,8 +194,6 @@ const styles = StyleSheet.create({
     padding: 10,
     paddingBottom: 16
   },
-
-  /* Barras de status compactas */
   statusBarsRow: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -246,48 +230,6 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     textAlign: "center"
   },
-
-  /* Tiles de navegação */
-  roomTilesRow: {
-    flexDirection: "row",
-    gap: 6,
-    marginBottom: 4
-  },
-  roomTile: {
-    flex: 1,
-    minHeight: 68,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 16,
-    borderWidth: 3,
-    paddingVertical: 6,
-    paddingHorizontal: 2,
-    gap: 2
-  },
-  roomTileActive: {
-    opacity: 0.6
-  },
-  activeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#FFFFFF",
-    marginTop: 1
-  },
-  roomTileLabel: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "900",
-    textAlign: "center",
-    textShadowColor: "rgba(77, 45, 23, 0.42)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1
-  },
-  pressed: {
-    opacity: 0.75
-  },
-
-  /* Mensagem de feedback */
   message: {
     color: "#5B3318",
     fontSize: 16,
@@ -296,8 +238,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     textAlign: "center"
   },
-
-  /* Barra inferior do cômodo */
   roomBar: {
     flexDirection: "row",
     gap: 8,
@@ -331,5 +271,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 2
+  },
+  pressed: {
+    opacity: 0.75
   }
 });
