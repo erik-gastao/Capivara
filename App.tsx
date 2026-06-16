@@ -4,7 +4,6 @@ import { StatusBar } from "expo-status-bar";
 
 import { CatchFoodGameScreen } from "./src/screens/CatchFoodGameScreen";
 import { GameScreen } from "./src/screens/GameScreen";
-import { HomeScreen } from "./src/screens/HomeScreen";
 import { MemoryGameScreen } from "./src/screens/MemoryGameScreen";
 import { MiniGamesScreen } from "./src/screens/MiniGamesScreen";
 import { ProfileScreen } from "./src/screens/ProfileScreen";
@@ -19,13 +18,12 @@ export default function App() {
     <NavigationContainer>
       <StatusBar style="dark" />
       <Stack.Navigator
-        initialRouteName="Home"
+        initialRouteName="Game"
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: "#F8F3E8" }
         }}
       >
-        <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Game" component={GameScreen} />
         <Stack.Screen name="MiniGames" component={MiniGamesScreen} />
         <Stack.Screen name="CatchFoodGame" component={CatchFoodGameScreen} />

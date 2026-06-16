@@ -15,7 +15,6 @@ export type RoomName = "Kitchen" | "Bathroom" | "Garden" | "Bedroom";
 export type CapybaraScene = "home" | "kitchen" | "bathroom" | "garden" | "bedroom";
 
 export type RootStackParamList = {
-  Home: undefined;
   Game: { happinessBonus?: number } | undefined;
   MiniGames: undefined;
   CatchFoodGame: undefined;

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ImageBackground,
   Pressable,
@@ -11,7 +11,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { loadGameStatus, saveGameStatus } from "../storage/gameStorage";
+import { loadGameStatus, loadLastRoom, saveGameStatus } from "../storage/gameStorage";
 import { CapybaraStatus, RootStackParamList, RoomName } from "../types/game";
 import {
   addCoinsBonus,
@@ -79,6 +79,15 @@ const actionTiles: ActionTileConfig[] = [
 
 export function GameScreen({ navigation, route }: Props) {
   const [status, setStatus] = useState<CapybaraStatus>(initialStatus);
+  const hasRestoredRoom = useRef(false);
+
+  useEffect(() => {
+    if (hasRestoredRoom.current) return;
+    hasRestoredRoom.current = true;
+    loadLastRoom().then((room) => {
+      if (room) navigation.navigate(room);
+    });
+  }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
