@@ -25,7 +25,7 @@ const sceneImages: Record<CapybaraScene, ImageSourcePropType> = {
   home: require("../../assets/images/capybara-hero.png"),
   kitchen: require("../../assets/images/capybara-kitchen.png"),
   bathroom: require("../../assets/images/capybara-bathroom.png"),
-  garden: require("../../assets/images/capybara-garden.png"),
+  garden: require("../../assets/images/capybara-lobby-cartoon.png"),
   bedroom: require("../../assets/images/capybara-bedroom.png")
 };
 
