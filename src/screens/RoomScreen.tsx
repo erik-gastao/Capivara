@@ -15,6 +15,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { PageNav, ROOM_PAGES } from "../components/PageNav";
+import { TopBar } from "../components/TopBar";
 import { capyBody, capyEyes, capyMouth } from "../assets/capySprites";
 import { loadGameStatus, saveGameStatus, saveLastRoom } from "../storage/gameStorage";
 import {
@@ -224,6 +225,9 @@ export function RoomScreen({ navigation, route }: Props) {
       style={styles.background}
     >
       <SafeAreaView style={styles.safeArea}>
+
+        {/* Barra superior: moedas à esquerda, perfil à direita */}
+        <TopBar coins={status.coins} onProfile={() => navigation.navigate("Profile")} />
 
         {/* Barras de status flutuantes */}
         <View style={styles.statusBarsRow}>
