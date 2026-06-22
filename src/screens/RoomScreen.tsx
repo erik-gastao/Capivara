@@ -4,6 +4,7 @@ import {
   Image,
   ImageBackground,
   ImageSourcePropType,
+  Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -13,7 +14,6 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { ActionButton } from "../components/ActionButton";
 import { PageNav, ROOM_PAGES } from "../components/PageNav";
 import { capyBody, capyEyes, capyMouth } from "../assets/capySprites";
 import { loadGameStatus, saveGameStatus, saveLastRoom } from "../storage/gameStorage";
@@ -53,8 +53,8 @@ type RoomBottomBarConfig = {
 
 const COMPACT_BAR_HEIGHT = 44;
 
-const SPRITE_WIDTH = 200;
-const SPRITE_HEIGHT = 300;
+const SPRITE_WIDTH = 220;
+const SPRITE_HEIGHT = 330;
 
 // Posições das camadas de rosto sobrepostas ao corpo.
 // Cada cômodo pode sobrescrever os valores padrão individualmente.
@@ -64,13 +64,13 @@ type FaceLayout = {
 };
 
 const DEFAULT_FACE: FaceLayout = {
-  eyeW: 140, eyeH: 41, eyeTop: 33, eyeLeft: 30,
-  mouthW: 150, mouthH: 74, mouthTop: 76, mouthLeft: 25,
+  eyeW: 154, eyeH: 45, eyeTop: 36, eyeLeft: 33,
+  mouthW: 165, mouthH: 81, mouthTop: 84, mouthLeft: 28,
 };
 
 // Overrides por cômodo — só preencha o que difere do DEFAULT_FACE
 const ROOM_FACE: Record<RoomName, FaceLayout> = {
-  Kitchen:  { ...DEFAULT_FACE, eyeTop: 145, eyeLeft: 39, eyeW: 122, eyeH: 35, mouthTop: 100, mouthLeft: 32, mouthW: 136, mouthH: 67 },
+  Kitchen:  { ...DEFAULT_FACE, eyeTop: 160, eyeLeft: 43, eyeW: 134, eyeH: 39, mouthTop: 110, mouthLeft: 35, mouthW: 150, mouthH: 74 },
   Bathroom: { ...DEFAULT_FACE },
   Garden:   { ...DEFAULT_FACE },
   Bedroom:  { ...DEFAULT_FACE },
@@ -277,11 +277,6 @@ export function RoomScreen({ navigation, route }: Props) {
           </View>
         ) : null}
 
-        {/* Botão de ação */}
-        <View style={styles.actionRow}>
-          <ActionButton icon={config.icon} label={config.actionLabel} onPress={handleCareAction} />
-        </View>
-
         {/* Barra inferior do cômodo */}
         <View style={styles.roomBar}>
           <View style={styles.barSlot}>
@@ -289,7 +284,12 @@ export function RoomScreen({ navigation, route }: Props) {
             <Text style={styles.barLabel}>{barConfig.left.label}</Text>
           </View>
 
-          <View style={[styles.barSlot, styles.barSlotCenter]}>
+          <Pressable
+            accessibilityLabel={config.actionLabel}
+            accessibilityRole="button"
+            onPress={handleCareAction}
+            style={({ pressed }) => [styles.barSlot, styles.barSlotCenter, pressed && styles.pressed]}
+          >
             {barConfig.center.hasArrows ? (
               <View style={styles.selectorRow}>
                 <MaterialCommunityIcons color="#C49A52" name="chevron-left" size={26} />
@@ -300,7 +300,7 @@ export function RoomScreen({ navigation, route }: Props) {
               <MaterialCommunityIcons color="#5D351C" name={barConfig.center.iconName} size={38} />
             )}
             <Text style={styles.barLabel}>{barConfig.center.label}</Text>
-          </View>
+          </Pressable>
 
           <View style={styles.barSlot}>
             <MaterialCommunityIcons color="#8A5428" name={barConfig.right.iconName} size={30} />
@@ -362,8 +362,7 @@ const styles = StyleSheet.create({
   spriteArea: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-end",
-    paddingBottom: 4
+    justifyContent: "center",
   },
   spriteContainer: {
     width: SPRITE_WIDTH,
@@ -392,8 +391,8 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textAlign: "center"
   },
-  actionRow: {
-    paddingBottom: 6
+  pressed: {
+    opacity: 0.72
   },
   roomBar: {
     flexDirection: "row",
