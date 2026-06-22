@@ -39,7 +39,7 @@ const TREE_SPAWN_RANGE = 100;
 const COLLISION_TOLERANCE_Y = 35;
 const COLLISION_TOLERANCE_X = 25;
 
-const forestBackground = require("../../assets/images/capybara-garden.png");
+const forestBackground = require("../../assets/images/capybara-lobby-cartoon.png");
 const capybaraImage = require("../../assets/images/capybara-hero.png");
 
 export function CatchFoodGameScreen({ navigation }: Props) {

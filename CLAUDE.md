@@ -41,9 +41,11 @@ de considerar uma tarefa concluída.
 - `src/components/` — peças de UI reutilizáveis montadas pelas telas
 - `src/storage/` — leitura e escrita de estado no AsyncStorage
 - `src/utils/` — lógica pura do jogo (regras de status, cálculos)
+- `src/assets/capySprites.ts` — constantes `require()` de todos os sprites da Capy e itens
 
 Mantenha essa separação de responsabilidades. Lógica de jogo vai em `utils`,
 não dentro de telas. Acesso a armazenamento vai em `storage`, não espalhado.
+Novos assets de imagem devem ser exportados de `src/assets/capySprites.ts`.
 
 ## Modelo do jogo (ver src/types/game.ts)
 
@@ -58,20 +60,68 @@ não dentro de telas. Acesso a armazenamento vai em `storage`, não espalhado.
 - As ações têm trade-offs (definidos em `src/utils/statusRules`): por exemplo,
   comer reduz higiene e brincar reduz energia. Esse equilíbrio é o núcleo da
   jogabilidade — preserve-o ao mexer nas regras.
-- Telas: Home, Game, MiniGames, MemoryGame, CatchFoodGame, Shop, Profile, e
-  4 cômodos (Kitchen, Bathroom, Garden, Bedroom) que reutilizam o mesmo
-  `RoomScreen`.
+- Telas: **Game** (ponto de entrada), MiniGames, MemoryGame, CatchFoodGame,
+  Shop, Profile, e 4 cômodos (Kitchen, Bathroom, Garden, Bedroom) que
+  reutilizam o mesmo `RoomScreen`. Não existe mais HomeScreen.
 
-### Navegação do GameScreen
+### Navegação por cômodos (PageNav)
 
-O `GameScreen` não tem mais barra de navegação inferior. O acesso às funções
-é feito pelo topo da tela:
+A navegação entre cômodos usa paginação com setas e bolinhas (`PageNav`),
+sem tiles/botões individuais. A ordem fixa é:
+
+```
+Início (Game) → Alimentar (Kitchen) → Brincar (Garden) → Dormir (Bedroom) → Banho (Bathroom)
+```
+
+- O componente `PageNav` vive em `src/components/PageNav.tsx` e exporta
+  também a constante `ROOM_PAGES` com a ordem canônica — use ela em qualquer
+  lugar que precise da ordem dos cômodos.
+- Navegação entre cômodos usa `navigation.replace()` para não empilhar telas.
+  Voltar ao Início usa `navigation.goBack()`.
+- O último cômodo visitado é salvo via `saveLastRoom` e restaurado ao abrir
+  o app (lógica em `GameScreen` com `useRef hasRestoredRoom`).
+
+### Layout do GameScreen
 
 - **Linha superior:** moedas (esquerda) + botão de perfil (direita)
-- **Linha de ações:** Alimentar · Brincar · Dormir · Banho (esquerda → direita)
+- **Barras de status:** 4 barras verticais estilo Pou (fome/alegria/energia/higiene)
+- **PageNav:** paginação de cômodos logo abaixo das barras
+- **Área principal:** imagem do lobby (`capybara-lobby-cartoon.png`) flex:1
 
-Não reintroduza `GameBottomNav` no `GameScreen` sem discutir antes — a
-remoção foi intencional para simplificar a interface para o público idoso.
+Não reintroduza `GameBottomNav` nem tiles de ação no `GameScreen` sem discutir
+antes — a remoção foi intencional para simplificar a interface para o público idoso.
+
+### Layout do RoomScreen
+
+Cada cômodo tem:
+- Barras de status compactas (altura 44px) no topo
+- `PageNav` para trocar de cômodo
+- `CapybaraDisplay` com a cena do cômodo
+- Botão de ação principal (`ActionButton`)
+- **Barra inferior fixa** com 3 slots (esquerda / centro / direita), onde
+  a direita é sempre a loja. Os ítens do centro/esquerda são visuais por ora.
+
+## Sistema de sprites da Capy (`src/assets/capySprites.ts`)
+
+A Capy é composta por camadas de imagens PNG transparentes sobrepostas.
+Todas as imagens estão em `assets/images/` e exportadas de `capySprites.ts`.
+
+| Exportação | Camada | Conteúdo |
+|---|---|---|
+| `capyBody` | Base | Corpo inteiro: `normal`, `cesta`, `pipoca`, `sad`, `sleepHat` |
+| `capyEyes` | Olhos | `openNormal`, `openSick`, `tired`, `closed` |
+| `capyMouth` | Boca/bochechas | `normal`, `happy`, `veryHappy`, `joke`, `sick`, `uau`, `faceTired` |
+| `capyWalk` | Animação | Capy andando com cesta: `center`, `right`, `left` |
+| `cestaPinhas` | Item | Array[5]: cesta com 1–5 pinhas (índice = quantidade − 1) |
+| `shopAssets` | UI | `loja` (fachada da loja), `hatBoina` (acessório) |
+| `statusIcons` | UI | `sleep` (ícone Zzz para o quarto) |
+
+**Regra:** não use `require("../../assets/images/...")` diretamente nas telas —
+importe de `capySprites.ts` para manter os paths centralizados.
+
+O `CapybaraDisplay` atual ainda usa imagens de cena únicas por cômodo
+(`capybara-kitchen.png` etc.). A migração para composição em camadas com
+`capyBody` + `capyEyes` + `capyMouth` é o próximo passo planejado.
 
 ## Acessibilidade (requisito central, não opcional)
 

@@ -58,12 +58,6 @@ export function ProfileScreen({ navigation }: Props) {
               <Text style={styles.levelPoints}>680 / 1000</Text>
             </View>
 
-            <View style={styles.moodCard}>
-              <MaterialCommunityIcons color="#E8A32D" name="emoticon-happy" size={34} />
-              <Text style={styles.moodTitle}>Humor</Text>
-              <Text style={styles.moodText}>Feliz</Text>
-            </View>
-
             <View style={styles.capybaraStage}>
               <Image
                 accessibilityLabel="Capivara Cacau no perfil"
@@ -241,30 +235,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 5,
     textAlign: "center"
-  },
-  moodCard: {
-    position: "absolute",
-    zIndex: 2,
-    right: 14,
-    top: 18,
-    width: 84,
-    alignItems: "center",
-    borderRadius: 16,
-    backgroundColor: "#FFF9EA",
-    borderWidth: 1,
-    borderColor: "#E0BF83",
-    padding: 9
-  },
-  moodTitle: {
-    color: "#5D351C",
-    fontSize: 12,
-    fontWeight: "900",
-    marginTop: 2
-  },
-  moodText: {
-    color: "#5FA028",
-    fontSize: 13,
-    fontWeight: "900"
   },
   capybaraStage: {
     flex: 1,
