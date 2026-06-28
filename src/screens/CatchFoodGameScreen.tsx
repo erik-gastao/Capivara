@@ -55,7 +55,7 @@ const COLLISION_TOLERANCE_X = 30;
 
 const CONE_WIDTH = 34;
 
-const gameBackground = require("../../assets/images/capybara-hero.png");
+const gameBackground = require("../../assets/images/capybara-lobby-cartoon.png");
 const araucariaImage = require("../../assets/images/araucaria.png");
 
 // Static requires — React Native bundler needs these at build time
