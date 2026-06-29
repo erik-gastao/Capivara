@@ -35,7 +35,7 @@ export const capyWalk = {
 
 // Cesta de pinhas (itens de comida, 1 a 5 unidades)
 export const cestaPinhas = [
-  require("../../assets/images/cesta-pinhas-1un.png"),
+  require("../../assets/images/cestas-pinhas.png"),
   require("../../assets/images/cesta-pinhas-2un.png"),
   require("../../assets/images/cesta-pinhas-3un.png"),
   require("../../assets/images/cesta-pinhas-4un.png"),
